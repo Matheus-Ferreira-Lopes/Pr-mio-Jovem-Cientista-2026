@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Bem-estar Digital</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🧠 Bem-estar Digital</h1>
+    <p class="subtitle">Avalie seu uso diário do celular</p>
+
+    <div class="form">
+
+        <input type="number" id="horas" placeholder="Horas de uso">
+
+        <select id="ansiedade">
+            <option value="">Sentiu ansiedade?</option>
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+        </select>
+
+        <select id="raiva">
+            <option value="">Sentiu raiva hoje?</option>
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+        </select>
+
+        <select id="foco">
+            <option value="">Perdeu foco nos estudos?</option>
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+        </select>
+
+        <select id="procrastinacao">
+            <option value="">Procrastinou por causa do celular?</option>
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+        </select>
+
+        <select id="sono">
+            <option value="">Dormiu pior por causa do celular?</option>
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+        </select>
+
+        <button onclick="salvar()">Salvar Dia</button>
+        <button onclick="relatorio()">Gerar Relatório</button>
+        <button class="danger" onclick="limpar()">Limpar Dados</button>
+
+    </div>
+
+    <div id="resultado" class="result"></div>
+    <div id="historico" class="historico"></div>
+
+</div>
+
+<footer>Projeto Jovem Cientista 2026</footer>
+
+<script>
+
+// dica diária
+function dicaDiaria() {
+    let dicas = [
+        "Fique 1 hora sem celular hoje.",
+        "Evite usar o celular antes de dormir.",
+        "Faça pausas a cada 30 minutos.",
+        "Desative notificações por 2 horas.",
+        "Evite redes sociais ao acordar.",
+        "Passe mais tempo offline hoje.",
+        "Use o celular apenas com propósito."
+    ];
+    return dicas[new Date().getDate() % dicas.length];
+}
+
+// salvar
+function salvar() {
+    let dados = JSON.parse(localStorage.getItem("dados")) || [];
+
+    let registro = {
+        horas: Number(horas.value),
+        ansiedade: ansiedade.value,
+        raiva: raiva.value,
+        foco: foco.value,
+        procrastinacao: procrastinacao.value,
+        sono: sono.value,
+        data: new Date().toLocaleDateString()
+    };
+
+    if (Object.values(registro).includes("")) {
+        alert("Preencha tudo!");
+        return;
+    }
+
+    dados.push(registro);
+    localStorage.setItem("dados", JSON.stringify(dados));
+
+    alert("Salvo!");
+    mostrarHistorico();
+}
+
+// relatório
+function relatorio() {
+    let dados = JSON.parse(localStorage.getItem("dados")) || [];
+
+    if (dados.length === 0) {
+        resultado.innerHTML = "Sem dados.";
+        return;
+    }
+
+    let totalHoras = 0;
+    let problemas = {
+        ansiedade: 0,
+        raiva: 0,
+        foco: 0,
+        procrastinacao: 0,
+        sono: 0
+    };
+
+    dados.forEach(d => {
+        totalHoras += d.horas;
+        if (d.ansiedade === "sim") problemas.ansiedade++;
+        if (d.raiva === "sim") problemas.raiva++;
+        if (d.foco === "sim") problemas.foco++;
+        if (d.procrastinacao === "sim") problemas.procrastinacao++;
+        if (d.sono === "sim") problemas.sono++;
+    });
+
+    let media = (totalHoras / dados.length).toFixed(1);
+
+    let nivel = media <= 2 ? "🟢 Saudável" :
+                media <= 5 ? "🟡 Moderado" :
+                "🔴 Excessivo";
+
+    let recomendacoes = "<ul>";
+
+    if (problemas.ansiedade > 2)
+        recomendacoes += "<li>Evite conteúdos que causam ansiedade</li>";
+
+    if (problemas.raiva > 2)
+        recomendacoes += "<li>Reduza exposição a redes sociais estressantes</li>";
+
+    if (problemas.foco > 2)
+        recomendacoes += "<li>Estude sem celular por blocos de tempo</li>";
+
+    if (problemas.procrastinacao > 2)
+        recomendacoes += "<li>Use técnicas de foco como Pomodoro</li>";
+
+    if (problemas.sono > 2)
+        recomendacoes += "<li>Evite usar o celular antes de dormir</li>";
+
+    recomendacoes += "</ul>";
+
+    resultado.innerHTML = `
+        <h2>📊 Relatório</h2>
+        <p>Média de uso: ${media}h</p>
+        <p>Nível: ${nivel}</p>
+
+        <h3>Problemas detectados:</h3>
+        <p>Ansiedade: ${problemas.ansiedade}</p>
+        <p>Raiva: ${problemas.raiva}</p>
+        <p>Foco: ${problemas.foco}</p>
+        <p>Procrastinação: ${problemas.procrastinacao}</p>
+        <p>Sono: ${problemas.sono}</p>
+
+        <h3>💡 Recomendações</h3>
+        ${recomendacoes}
+
+        <h3>📅 Dica do dia</h3>
+        <p>${dicaDiaria()}</p>
+    `;
+}
+
+// histórico
+function mostrarHistorico() {
+    let dados = JSON.parse(localStorage.getItem("dados")) || [];
+
+    let html = "<h3>📅 Histórico</h3>";
+
+    dados.forEach(d => {
+        html += `<p>${d.data} - ${d.horas}h</p>`;
+    });
+
+    historico.innerHTML = html;
+}
+
+// limpar
+function limpar() {
+    localStorage.clear();
+    resultado.innerHTML = "";
+    historico.innerHTML = "";
+}
+
+mostrarHistorico();
+
+</script>
+
+</body>
+</html>
